@@ -1,0 +1,41 @@
+Timeline
+Dylan Steele
+
+// List of user words --> crossword
+// Python serialize (export/import) (pickle)
+// Export with/without solutions
+// Save computer-generated hints for later
+
+By Wednesday, 11/19:
+	- Competitive analysis
+	- Storyboard
+	- Timeline
+	- Dictionary object
+	- User input of crossword size
+	- Draw crossword board
+	- Menu screen
+
+By Sunday, 11/23:
+	- Add letters and blank spaces to crossword
+	- Users able to create hints
+
+By Wednesday, 11/26
+	- Computer generated words, hints
+	- Dynamic numbering
+	- Export/import file (no picture)
+	- Completely solve crossword with Dictionary.com
+	- Help screen
+
+By Sunday, 11/30
+	- User able to solve puzzles
+	- Clear, delete, reveal, check functions
+	- Timer when solving
+
+By Tuesday, 12/3
+	- OpenCV implementation (if possible)
+	- Finishing touches
+
+By Wednesday, 12/4
+	- Done
+	- Review with Paul
+

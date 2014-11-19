@@ -1,0 +1,17 @@
+Timesheet
+Dylan Steele
+
+Monday, November 17 – 3 hours 
+	- researching competitors
+	- coding basic framework
+	- finding word dictionary
+	- storyboarding
+	- creating timeline and list of features 
+
+Tuesday, November 18 – 4 hours
+	- creating menu screen
+	- drawing of crossword area
+	- writing of competitive analysis
+	- allowing user input
+
+Wednesday, November 19 –
