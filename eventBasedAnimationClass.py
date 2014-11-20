@@ -1,4 +1,5 @@
 # eventBasedAnimationClass.py
+# Dylan Steele + dylans + Section D
 
 from Tkinter import *
 import sys

@@ -37,17 +37,8 @@ class CrosswordPuzzle(EventBasedAnimationClass):
         self.selectedLetterColor = "Gold"
         self.selectedRow = None
         self.selectedCol = None
-        self.message = ""
-        # self.initMenuButtons()
+        self.direction = "across"
         self.initCreateMode()
-
-    # def initMenuButtons(self):
-    #     self.createButton = Button(self.canvas, text="Create", 
-    #                                command=self.onCreateButtonPressed)
-    #     self.solveButton = Button(self.canvas, text="Solve", 
-    #                               command=self.onSolveButtonPressed)
-    #     self.helpButton = Button(self.canvas, text="Help", 
-                                 # command=self.onHelpButtonPressed)
 
     def onCreateButtonPressed(self):
         self.isMenuScreen = False
@@ -86,17 +77,25 @@ class CrosswordPuzzle(EventBasedAnimationClass):
         elif self.isHelpScreen:
             pass
         elif self.mode == 0: #create mode
-            pass
+            row, col = self.getSelectedRowAndCol(event)
+            if row == self.selectedRow and col == self.selectedCol:
+                self.switchDirections()
+            else:
+                self.selectedRow, self.selectedCol = row, col
+
+    def switchDirections(self):
+        if self.direction == "across":
+            self.direction = "down"
+        else:
+            self.direction = "across"
 
     def onClickInMenu(self, event):
         # lots of magic numbers, will fix when menu screen style is finalyzed
         cx = self.width / 2
         if (cx - 80) <= event.x <= (cx + 80) and (200 <= event.y <= 280):
-            # self.createCrosswordMode()
             self.isMenuScreen = False
             self.mode = 0
         elif (cx - 80) <= event.x <= (cx + 80) and (300 <= event.y <= 380):
-            # self.solveCrosswordMode()
             self.isMenuScreen = False
             self.mode = 1
         elif (cx - 80) <= event.x <= (cx + 80) and (400 <= event.y <= 480):
@@ -104,7 +103,9 @@ class CrosswordPuzzle(EventBasedAnimationClass):
             self.isHelpScreen = True
 
     def onKeyPressed(self, event):
-        print event.keysym, "pressed"
+        if event.keysym.isalpha():
+            self.board[self.selectedRow][self.selectedCol] = \
+                event.keysym.upper()
 
     def redrawAll(self):
         self.canvas.delete(ALL)
@@ -140,14 +141,31 @@ class CrosswordPuzzle(EventBasedAnimationClass):
 
     def initCreateMode(self):
         self.title = "Title"
-        self.board = [[None]*self.blocks for i in xrange(self.blocks)]
+        # self.board = [[None]*self.blocks for i in xrange(self.blocks)]
+        self.board = [[None, None, None, None, None, None, None, 1, None, None, None, None, None, None, None],
+                      [None, 1, None, 1, None, 1, None, 1, None, 1, None, 1, None, 1, None],
+                      [None, None, None, None, None, None, None, None, None, 1, None, None, None, None, None],
+                      [None, 1, None, 1, None, 1, None, 1, None, 1, None, 1, None, 1, None],
+                      [1, None, None, None, None, None, None, 1, None, None, None, None, None, None, None],
+                      [None, 1, None, 1, None, 1, None, 1, 1, 1, None, 1, 1, 1, None],
+                      [None, None, None, None, 1, None, None, None, None, None, None, None, None, None, None],
+                      [None, 1, None, 1, None, 1, None, 1, None, 1, None, 1, None, 1, None],
+                      [None, None, None, None, None, None, None, None, None, None, 1, None, None, None, None],
+                      [None, 1, 1, 1, None, 1, 1, 1, None, 1, None, 1, None, 1, None],
+                      [None, None, None, None, None, None, None, 1, None, None, None, None, None, None, 1],
+                      [None, 1, None, 1, None, 1, None, 1, None, 1, None, 1, None, 1, None],
+                      [None, None, None, None, None, 1, None, None, None, None, None, None, None, None, None],
+                      [None, 1, None, 1, None, 1, None, 1, None, 1, None, 1, None, 1, None],
+                      [None, None, None, None, None, None, None, 1, None, None, None, None, None, None, None]]
+        self.numbers = [[None]*self.blocks for i in xrange(self.blocks)]
 
     def drawCreateMode(self):
         # self.drawTitle()
         self.drawCrosswordBoard()
+        self.drawWords()
+        self.drawNumbers()
     
     def drawCrosswordBoard(self):
-        self.board[0][1] = 1
         canvas = self.canvas
         for row in xrange(self.blocks):
             for col in xrange(self.blocks):
@@ -160,27 +178,59 @@ class CrosswordPuzzle(EventBasedAnimationClass):
                     color = "black"
                 canvas.create_rectangle(left, top, right, bottom, fill=color)
 
-        
+    def drawWords(self):
+        canvas = self.canvas
+        for row in xrange(self.blocks):
+            for col in xrange(self.blocks):
+                x = self.margin + col*self.blockWidth + self.blockWidth/2
+                y = self.margin*2 + row*self.blockWidth + self.blockWidth/2
+                if self.board[row][col] != 1 or self.board[row][col] != None:
+                    letter = self.board[row][col]
+                    canvas.create_text(x, y, text=letter, font="Helvetica 22")
 
-    def button1Pressed(self):
-        # AskString Box
-        message = "How many blocks would you like?"
-        title = "AskInt Box"
-        options = range(7, 15)
-        response = tkSimpleDialog.askstring(title, message)
-        # response = choose(message, title, options)
-        message = "You just answered: " + str(response)
-        title = "Response (Info box)"
-        tkMessageBox.showinfo(title, message)
+    def drawNumbers(self):
+        canvas = self.canvas
+        for row in xrange(self.blocks):
+            for col in xrange(self.blocks):
+                numberSpacing = 3
+                x = self.margin + col*self.blockWidth + numberSpacing
+                y = self.margin*2 + row*self.blockWidth
+                if self.numbers[row][col] != None:
+                    number = self.numbers[row][col]
+                    canvas.create_text(x, y, text=number, font="Helvetica 12",
+                                       anchor=NW)
 
-    def choose(message, title, options):
-        msg = message + "\n" + "Choose one:"
-        for i in xrange(len(options)):
-            msg += "\n" + str(i+1) + ": " + options[i]
-        response = tkSimpleDialog.askstring(title, msg)
-        return options[int(response)-1]
+    def onTimerFired(self):
+        if self.mode == 0:
+            self.findNumbers()
+
+    def findNumbers(self):
+        curNum = 1
+        for row in xrange(self.blocks):
+            for col in xrange(self.blocks):
+                if self.isLegalNumbering(row, col):
+                    self.numbers[row][col] = curNum
+                    curNum += 1
+
+    def isLegalNumbering(self, row, col):
+        if self.board[row][col] == 1:
+            return False
+        if row < (self.blocks - 1) and self.board[row+1][col] == 1:
+            return False
+        for newRow in xrange(row-1, -1, -1):
+            if self.numbers[newRow][col] != None:
+                for newCol in xrange(col-1, -1, -1):
+                    if self.numbers[row][newCol] != None:
+                        return False
+                    elif col < (self.blocks - 1) and (self.board[row][col+1] 
+                        != None):
+                        return False
+                    if self.board[row][newCol] == 1:
+                        break
+                # if col < (self.blocks - 1) and self.board[row][col+1] == None:
+                    # return True
+            if self.board[newRow][col] == 1:
+                break
+        return True
 
 CrosswordPuzzle().run()
-
-
-
