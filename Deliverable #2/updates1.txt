@@ -1,0 +1,8 @@
+Updates1
+Dylan Steele
+
+- Added week markers to Timesheet.txt
+- Updated timesheet.txt with working hours
+- Updated crossword.py with new functionality (detailed in Timesheet.txt)
+- Added comments to crossword.py for clarity
+- Added notes to Timeline.txt for future work

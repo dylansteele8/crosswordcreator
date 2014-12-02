@@ -15,7 +15,7 @@ class EventBasedAnimationClass(object):
     def __init__(self, width=300, height=300):
         self.width = width
         self.height = height
-        self.timerDelay = 2000 # in milliseconds (set to None to turn off timer)
+        self.timerDelay = 250 # in milliseconds (set to None to turn off timer)
 
     def onLeftClickWrapper(self, event):
         if (not self._isRunning): return
@@ -36,7 +36,6 @@ class EventBasedAnimationClass(object):
         if (not self._isRunning): self.root.destroy(); return
         if (self.timerDelay == None): return # turns off timer
         self.onTimerFired()
-        self.redrawAll()
         self.canvas.after(self.timerDelay, self.onTimerFiredWrapper)         
 
     def quit(self):
@@ -52,9 +51,11 @@ class EventBasedAnimationClass(object):
     def run(self):
         # create the root and the canvas
         self.root = Tk()
+        self.root.title("Crosswordpfff")
+        self.root.resizable(width=FALSE, height=FALSE)
         self.canvas = Canvas(self.root, width=self.width, height=self.height)
+        self.canvas.pack(fill=BOTH, expand=YES)
         self.initAnimation()
-        self.canvas.pack()
         # set up events
         self.root.protocol("WM_DELETE_WINDOW", lambda: self.quit())
         self._isRunning = True

@@ -1,6 +1,7 @@
 Timesheet
 Dylan Steele
 
+#### Week 1 ####
 Monday, November 17 – 3 hours 
 	- researching competitors
 	- coding basic framework
@@ -14,4 +15,22 @@ Tuesday, November 18 – 4 hours
 	- writing of competitive analysis
 	- allowing user input
 
-Wednesday, November 19 –
+Thursday, November 20 - 2 hours
+    - finding/drawing numbers
+
+Saturday, November 22 - 2 hours
+    - refining numbers function
+
+#### Week 2 ####
+Sunday, November 23 - 4 hours
+    - finding words down and across
+    - checking if contiguous letters are a word
+
+Tuesday, November 25 - 2 hours
+    - going to next word
+    - improved: highlighting selected word (both directions)
+
+Wednesday, November 26 - 3 hours
+    - creating basic list of possible words
+    - deleting letters
+    - tabbing to next word

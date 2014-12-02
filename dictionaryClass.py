@@ -10,7 +10,7 @@ class Dictionary(object):
         dictionaryText = Dictionary.readFile(self.filename)
         wordDictionary = dict()
         for word in dictionaryText.splitlines():
-            wordDictionary[word] = len(word)
+            wordDictionary[word.upper()] = len(word)
         return wordDictionary
 
     @staticmethod
