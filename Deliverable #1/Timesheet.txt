@@ -34,3 +34,19 @@ Wednesday, November 26 - 3 hours
     - creating basic list of possible words
     - deleting letters
     - tabbing to next word
+
+#### Week 3 ####
+Sunday, November 30 - 2 hours
+    - adding possible words through personal dictionary
+
+Monday, December 1 - 4 hours
+    - adding hint boxes
+    - debuggin Tkinter Lisboxes
+
+Tuesday, December 2 - 6 hours
+    - adding Wordnik module for words
+    - changing order of creating crossword
+    - bug fixes
+    - implementing Title Entry widget
+
+Total Hours: 3 + 4 + 2 + 2 + 4 + 2 + 3 + 2 + 4 + 6 = 32

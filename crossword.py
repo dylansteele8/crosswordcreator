@@ -3,11 +3,15 @@
 
 from Tkinter import *
 from eventBasedAnimationClass import EventBasedAnimationClass
-from dictionaryClass import Dictionary
+from wordnik import *
+apiUrl = 'http://api.wordnik.com/v4'
+apiKey = 'c1491775ee5142754b00806ca92055078c19583aa60ea8c0c'
+client = swagger.ApiClient(apiKey, apiUrl)
 
 class CrosswordPuzzle(EventBasedAnimationClass):
 
-    def __init__(self, blocksPerSide=15):
+    def __init__(self):
+        blocksPerSide = 15
         height = 650
         widthOfBoard = 600
         widthOfHints = 400
@@ -21,16 +25,15 @@ class CrosswordPuzzle(EventBasedAnimationClass):
         self.width = width
         self.margin = margin
         self.blockWidth = blockWidth
-        self.blocks = blocksPerSide
+        self.blocks = blocksPerSide        
 
     def initAnimation(self):
-        self.dictionary = Dictionary().dictionary
-        # mode 0 is creating crossword
-        # mode 1 is solving crossword
+        self.wordApi = WordApi.WordApi(client)
+        self.wordsApi = WordsApi.WordsApi(client)
         self.mode = None
         self.isMenuScreen = True
         self.isHelpScreen = False
-        self.color = "Ivory"
+        self.color = "White"
         self.selectedWordColor = "DodgerBlue2"
         self.selectedLetterColor = "Gold"
         self.selectedRow = None
@@ -42,24 +45,24 @@ class CrosswordPuzzle(EventBasedAnimationClass):
         self.isMenuScreen = False
         self.mode = 0
 
-    def onSolveButtonPressed(self):
-        self.isMenuScreen = False
-        self.mode = 1
-
     def onHelpButtonPressed(self):
         self.isMenuScreen = False
         self.isHelpScreen = True
 
     def onRightClick(self, event):
-        if self.mode == 0 and self.isClickOnBoard(event): #create mode
-                row, col = self.getSelectedRowAndCol(event)
-                if self.board[row][col] == None:
-                    self.board[row][col] = 1
-                    self.board[-row-1][-col-1] = 1
-                else:
-                    self.board[row][col] = None
-                    self.board[-row-1][-col-1] = None
-                    
+        if self.mode == 0 and self.isClickOnBoard(event):
+            self.updateHints()
+            row, col = self.getSelectedRowAndCol(event)
+            if self.board[row][col] == None:
+                self.board[row][col] = 1
+                self.board[-row-1][-col-1] = 1
+                if self.selectedRow == row:
+                    self.selectedRow = None
+                    self.selectedCol = None
+            else:
+                self.board[row][col] = None
+                self.board[-row-1][-col-1] = None
+
     # find the row and column of the click
     def getSelectedRowAndCol(self, event):
         row = (event.y - self.margin*2)/self.blockWidth
@@ -73,14 +76,21 @@ class CrosswordPuzzle(EventBasedAnimationClass):
             pass
         elif self.mode == 0: #create mode
             if self.isClickOnBoard(event):
+                self.titleEntry.config(state=DISABLED)
                 row, col = self.getSelectedRowAndCol(event)
                 if row == self.selectedRow and col == self.selectedCol:
                     self.switchDirections()
                 else:
                     if self.board[row][col] != 1:
                         self.selectedRow, self.selectedCol = row, col
+            if (event.widget == self.downHints or 
+                event.widget == self.acrossHints):
+                self.inCrosswordBoard = False
+            elif event.widget == self.titleEntry:
+                self.titleEntry.config(state=NORMAL)
+                self.inCrosswordBoard = False
             else:
-                return
+                self.inCrosswordBoard = True
 
     def isClickOnBoard(self, event):
         if (self.margin <= event.x <= self.blockWidth*self.blocks + 
@@ -110,45 +120,43 @@ class CrosswordPuzzle(EventBasedAnimationClass):
 
     def onKeyPressed(self, event):
         if self.mode == 0:
-            if event.widget == self.acrossHints:
-                self.addAcrossHint(event)
-            elif event.widget == self.downHints:
-                self.addDownHint(event)
-            else:
+            if self.inCrosswordBoard and self.selectedRow != None:
                 if event.keysym == "Tab":
                     self.goToNextWord()
                 elif event.keysym == "BackSpace":
                     self.deleteLetter()
-                elif event.keysym == "Escape":
-                    if self.showPossibleWords == False:
-                        self.showPossibleWords = True
-                        self.possibleWords = self.findPossibleWords()
-                    else:
-                        self.showPossibleWords = False
-                        self.possibleWords = None
-                elif event.keysym in ["Left", "Right", "Up", "Down"]:
-                    return
-                    self.shiftCurrentLetter(event.keysym)
+                elif event.keysym == "space":
+                    self.goToNextLetter()
                 elif event.keysym.isalpha() and len(event.keysym) == 1:
                     self.board[self.selectedRow][self.selectedCol] = \
                         event.keysym.upper()
                     self.goToNextLetter()
+            elif event.widget == self.acrossHints:
+                self.addHint(event, "across")
+            elif event.widget == self.downHints:
+                self.addHint(event, "down")
 
     def findPossibleWords(self):
-        currentWord = self.findCurrentWord()
         possibleWords = []
-        print currentWord
-        for wordToCheck in self.dictionary:
-            if self.wordIsPossible(wordToCheck, currentWord):
-                possibleWords.append(wordToCheck)
-        print possibleWords
-        return possibleWords
-
-    def wordIsPossible(self, wordToCheck, currentWord):
+        currentWordIndexes = self.findCurrentWord()
+        if currentWordIndexes == None:
+            return possibleWords
+        currentWord = ""
+        for row, col in currentWordIndexes:
+            letter = self.board[row][col]
+            if letter == None:
+                currentWord += "?"
+            else:
+                currentWord += letter
         currentWordLength = len(currentWord)
-        if self.dictionary[wordToCheck] != currentWordLength:
-            return False
-        return True
+        words = self.wordsApi.searchWords(query=currentWord, 
+                                          caseSensitive=False, 
+                                          minLength=currentWordLength,
+                                          maxLength=currentWordLength,
+                                          limit=self.wordLimit)
+        for i in xrange(len(words.searchResults)):
+            possibleWords.append(words.searchResults[i].word)
+        return possibleWords
 
     def findCurrentWord(self):
         if self.direction == "across":
@@ -161,15 +169,59 @@ class CrosswordPuzzle(EventBasedAnimationClass):
 
     def deleteLetter(self):
         if self.direction == "down":
-            if (self.board[self.selectedRow - 1][self.selectedCol] != 1 and
-                self.selectedRow > 0):
-                self.board[self.selectedRow - 1][self.selectedCol] = None
+            self.board[self.selectedRow][self.selectedCol] = None
+            if (self.board[self.selectedRow - 1][self.selectedCol] == 1 or
+                self.selectedRow - 1 < 0):
+                self.goToPreviousWord()
+            else:
                 self.selectedRow -= 1
         elif self.direction == "across":
-            if (self.board[self.selectedRow][self.selectedCol - 1] != 1 and
-                self.selectedCol > 0):
-                self.board[self.selectedRow][self.selectedCol - 1] = None
+            self.board[self.selectedRow][self.selectedCol] = None
+            if (self.board[self.selectedRow][self.selectedCol - 1] == 1 or
+                self.selectedCol - 1 < 0):
+                self.goToPreviousWord()
+            else:
                 self.selectedCol -= 1
+
+    def goToPreviousWord(self):
+        letterIndex = (self.selectedRow, self.selectedCol)
+        if self.direction == "down": 
+            self.goToPreviousDownWord(letterIndex)
+        elif self.direction == "across":
+            self.goToPreviousAcrossWord(letterIndex)
+
+    def goToPreviousDownWord(self, letterIndex):
+        for wordIndex in xrange(len(self.downWordList)):
+            for letter in self.downWordList[wordIndex]:
+                if letter == letterIndex:
+                    previousIndex = wordIndex - 1
+                    if previousIndex >= 0:
+                        previousWord = self.downWordList[previousIndex]
+                        previousRow = previousWord[-1][0]
+                        previousCol = previousWord[-1][1]
+                        self.selectedRow = previousRow
+                        self.selectedCol = previousCol
+                    else:
+                        self.switchDirections()
+                        self.selectedRow = self.acrossWordList[-1][-1][0]
+                        self.selectedCol = self.acrossWordList[-1][-1][1]
+
+    def goToPreviousAcrossWord(self, letterIndex):
+        for wordIndex in xrange(len(self.acrossWordList)):
+            for letter in self.acrossWordList[wordIndex]:
+                if letter == letterIndex:
+                    previousIndex = wordIndex - 1
+                    print previousIndex
+                    if previousIndex >= 0:
+                        previousWord = self.acrossWordList[previousIndex]
+                        previousRow = previousWord[-1][0]
+                        previousCol = previousWord[-1][1]
+                        self.selectedRow = previousRow
+                        self.selectedCol = previousCol
+                    else:
+                        self.switchDirections()
+                        self.selectedRow = self.downWordList[-1][-1][0]
+                        self.selectedCol = self.downWordList[-1][-1][1]
 
     def goToNextLetter(self):
         if self.direction == "down":
@@ -178,12 +230,18 @@ class CrosswordPuzzle(EventBasedAnimationClass):
                 self.goToNextWord()
             else:
                 self.selectedRow += 1
+                while (self.selectedRow < self.blocks -1 and
+                       self.board[self.selectedRow+1][self.selectedCol] !=None):
+                    self.selectedRow += 1
         elif self.direction == "across":
             if (self.selectedCol == (self.blocks - 1) or
                 self.board[self.selectedRow][self.selectedCol + 1] == 1):
                 self.goToNextWord()
             else:
                 self.selectedCol += 1
+                while (self.selectedCol < self.blocks - 1 and
+                       self.board[self.selectedRow][self.selectedCol+1] !=None):
+                    self.selectedCol += 1
 
     def goToNextWord(self):
         letterIndex = (self.selectedRow, self.selectedCol)
@@ -232,56 +290,56 @@ class CrosswordPuzzle(EventBasedAnimationClass):
             self.drawHelpScreen()
         elif self.mode == 0: #create mode
             self.drawCreateMode()
-        elif self.mode == 1: #solve mode
-            # self.initSolveMode()
-            self.drawSolveMode()
 
     def drawMenuScreen(self):
         # lots of magic numbers, will fix when menu screen style is finalyzed
         canvas = self.canvas
         cx = self.width / 2
         canvas.create_rectangle(0, 0, self.width, self.height, fill=self.color)
-        canvas.create_text(cx, self.margin, text="Crosswordr",
-                           font="Arvo 48 bold")
-        canvas.create_text(cx, self.margin*2, text="Dylan Steele",
-                           font="Arvo 28")
+        canvas.create_text(cx, self.margin*2, text="Crosswordr",
+                           font="Helvetica 48 bold")
+        canvas.create_text(cx, self.margin*3, text="Dylan Steele",
+                           font="Helvetica 28")
         canvas.create_rectangle(cx-80, 200, cx+80, 280, 
                                 fill=self.selectedWordColor)
-        canvas.create_text(cx, 240, text="Create", font="Arvo 28 bold")
-        canvas.create_rectangle(cx-80, 300, cx+80, 380, 
-                                fill=self.selectedWordColor)
-        canvas.create_text(cx, 340, text="Solve", font="Arvo 28 bold")
+        canvas.create_text(cx, 240, text="Create", font="Helvetica 28 bold")
         canvas.create_rectangle(cx-80, 400, cx+80, 480, 
                                 fill=self.selectedWordColor)
-        canvas.create_text(cx, 440, text="Help", font="Arvo 28 bold")
-        # canvas.create_window(cx, 200, window=self.createButton)
-        # canvas.create_window(cx, 300, window=self.solveButton)
-        # canvas.create_window(cx, 400, window=self.helpButton)
+        canvas.create_text(cx, 440, text="Help", font="Helvetica 28 bold")
 
     def initCreateMode(self):
-        self.title = "Title"
-        # self.board = [[None]*self.blocks for i in xrange(self.blocks)]
-        self.numberList = None
-        self.numDirsList = None
+        self.wordLimit = 50
+        self.board = [[None]*self.blocks for i in xrange(self.blocks)]
+        self.wordColor = "black"
+        self.errorColor = "red"
+        self.colorOfLetters = [[self.wordColor]*self.blocks for i in 
+                                xrange(self.blocks)]
         self.possibleWords = None
-        self.showPossibleWords = False
+        self.showPossibleWords = True
+        self.inCrosswordBoard = True
+        self.wordList = self.findWords()
+        self.numberList = self.findNumbers()
+        self.numDirsList = self.findNumberDirections()
+        self.initTitle()
+        self.initWordSuggestions()
+        self.initHints()
+        self.updateHints()
         # sample board for testing purposes
-        self.board = [[None, None, None, None, None, None, None, 1, None, None, None, None, None, None, None],
-                      [None, 1, None, 1, None, 1, None, 1, None, 1, None, 1, None, 1, None],
-                      [None, None, None, None, None, None, None, None, None, 1, None, None, None, None, None],
-                      [None, 1, None, 1, None, 1, None, 1, None, 1, None, 1, None, 1, None],
-                      [1, None, None, None, None, None, None, 1, None, None, None, None, None, None, None],
-                      [None, 1, None, 1, None, 1, None, 1, 1, 1, None, 1, 1, 1, None],
-                      [None, None, None, None, 1, None, None, None, None, None, None, None, None, None, None],
-                      [None, 1, None, 1, None, 1, None, 1, None, 1, None, 1, None, 1, None],
-                      [None, None, None, None, None, None, None, None, None, None, 1, None, None, None, None],
-                      [None, 1, 1, 1, None, 1, 1, 1, None, 1, None, 1, None, 1, None],
-                      [None, None, None, None, None, None, None, 1, None, None, None, None, None, None, 1],
-                      [None, 1, None, 1, None, 1, None, 1, None, 1, None, 1, None, 1, None],
-                      [None, None, None, None, None, 1, None, None, None, None, None, None, None, None, None],
-                      [None, 1, None, 1, None, 1, None, 1, None, 1, None, 1, None, 1, None],
-                      [None, None, None, None, None, None, None, 1, None, None, None, None, None, None, None]]
-        self.initNumberHints()
+        # self.board = [[None, None, None, None, None, None, None, 1, None, None, None, None, None, None, None],
+        #               [None, 1, None, 1, None, 1, None, 1, None, 1, None, 1, None, 1, None],
+        #               [None, None, None, None, None, None, None, None, None, 1, None, None, None, None, None],
+        #               [None, 1, None, 1, None, 1, None, 1, None, 1, None, 1, None, 1, None],
+        #               [1, None, None, None, None, None, None, 1, None, None, None, None, None, None, None],
+        #               [None, 1, None, 1, None, 1, None, 1, 1, 1, None, 1, 1, 1, None],
+        #               [None, None, None, None, 1, None, None, None, None, None, None, None, None, None, None],
+        #               [None, 1, None, 1, None, 1, None, 1, None, 1, None, 1, None, 1, None],
+        #               [None, None, None, None, None, None, None, None, None, None, 1, None, None, None, None],
+        #               [None, 1, 1, 1, None, 1, 1, 1, None, 1, None, 1, None, 1, None],
+        #               [None, None, None, None, None, None, None, 1, None, None, None, None, None, None, 1],
+        #               [None, 1, None, 1, None, 1, None, 1, None, 1, None, 1, None, 1, None],
+        #               [None, None, None, None, None, 1, None, None, None, None, None, None, None, None, None],
+        #               [None, 1, None, 1, None, 1, None, 1, None, 1, None, 1, None, 1, None],
+        #               [None, None, None, None, None, None, None, 1, None, None, None, None, None, None, None]]
 
     def findWords(self):
         self.acrossWordList = self.findWordsAcross()
@@ -308,33 +366,54 @@ class CrosswordPuzzle(EventBasedAnimationClass):
             return self.merge(left, right)
 
     def drawCreateMode(self):
-        # self.drawTitle()
+        self.drawTitle()
         self.drawCrosswordBoard()
         if self.selectedRow != None:
             self.drawSelectedLetter()
             self.drawSelectedWord()
+        self.drawWords()
+        self.drawNumbers()
         if self.showPossibleWords:
             self.drawPossibleWords()
-        self.drawWords()
-        if self.numberList != None:
-            self.drawNumbers()
-            if self.showPossibleWords:
-                self.drawPossibleWords()
-            else:
-                print "drawNumbers"
-                self.drawNumberHints()
+        else:
+            self.drawHints()
 
-    def drawNumberHints(self):
+    def initTitle(self):
+        self.titleEntry = Entry(self.canvas, font="Helvetica 30 bold", 
+                                justify=CENTER, highlightthickness=0,
+                                disabledforeground="Gray")
+        self.updateTitle()
+        self.titleEntry.config(state=DISABLED)
+
+    def updateTitle(self):
+        if (self.titleEntry.cget('state') == 'disabled' and 
+            len(self.titleEntry.get()) == 0):
+            self.titleEntry.config(state=NORMAL)
+            self.titleEntry.insert(0, "Title (click to change)")
+            self.titleEntry.config(state=DISABLED)
+
+    def drawTitle(self):
         canvas = self.canvas
-        canvas.create_window(600, 50, anchor=NW, window=self.acrossFrame)
-        canvas.create_window(600, 350, anchor=NW, window=self.downFrame)
+        canvas.create_window(self.margin, self.margin, anchor=W, 
+                             window=self.titleEntry, width=500)
 
-    def initNumberHints(self):
+    def drawHints(self):
+        canvas = self.canvas
+        canvas.create_text(self.widthOfBoard, 130, text="Across", 
+                           font="Helvetica 24 bold", anchor=W)
+        canvas.create_text(self.widthOfBoard, 380, text="Down",
+                           font="Helvetica 24 bold", anchor=W)
+        canvas.create_window(self.widthOfBoard, 145, anchor=NW, 
+                             window=self.acrossFrame, width=350)
+        canvas.create_window(self.widthOfBoard, 395, anchor=NW, 
+                             window=self.downFrame, width=350)
+
+    def initHints(self):
         self.acrossFrame = Frame(self.canvas)
         self.acrossScrollbar = Scrollbar(self.acrossFrame, orient=VERTICAL)
-        self.acrossHints = Listbox(self.acrossFrame, font="Helvetica 16", width=30,
-                                yscrollcommand=self.acrossScrollbar.set,
-                                selectbackground="White")
+        self.acrossHints = Listbox(self.acrossFrame, font="Helvetica 16", 
+                                   width=30, selectbackground="White",
+                                   yscrollcommand=self.acrossScrollbar.set)
         self.acrossScrollbar.config(command=self.acrossHints.yview,)
         self.acrossScrollbar.pack(side=RIGHT, fill=Y)
         self.acrossHints.pack(side=LEFT, fill=BOTH, expand=1)        
@@ -347,58 +426,59 @@ class CrosswordPuzzle(EventBasedAnimationClass):
         self.downScrollbar.pack(side=RIGHT, fill=Y)
         self.downHints.pack(side=LEFT, fill=BOTH, expand=1)
 
-        self.hints = dict()
-
-        self.wordList = self.findWords()
-        self.numberList = self.findNumbers()
-        self.numDirsList = self.findNumberDirections()
-        self.updateHints()
-        self.updateHintSelection()
-
-    def addAcrossHint(self, event):
-        hint = self.acrossHints.get(ACTIVE)
-        for i in xrange(self.acrossHints.size()):
-            if self.acrossHints.get(i) == hint:
+    def addHint(self, event, direction):
+        if direction == "across":
+            hintDir = self.acrossHints
+        elif direction == "down":
+            hintDir = self.downHints
+        hint = hintDir.get(ACTIVE)
+        for i in xrange(hintDir.size()):
+            if hintDir.get(i) == hint:
                 indexToActivate = i
         hint = hint.split("\t")
         if event.keysym == "BackSpace":
             hint[1] = hint[1][:-1]
-        else:
+        elif event.keysym == "space":
+            hint[1] += " "
+        elif len(event.keysym) == 1:
             hint[1] += event.keysym
         hint = "\t".join(hint)
-        self.acrossHints.insert(ACTIVE, hint)
-        self.acrossHints.activate(indexToActivate)
-        self.acrossHints.delete(indexToActivate+1)
-
-
-    def addDownHint(self):
-        print self.downHints.get(ACTIVE)
+        hintDir.insert(ACTIVE, hint)
+        hintDir.activate(indexToActivate)
+        hintDir.delete(indexToActivate+1)
 
     def updateHints(self):
         self.acrossHints.delete(0, END)
         self.downHints.delete(0, END)
         for i in xrange(len(self.numDirsList)):
-            text = "%s\t%s" % (self.numDirsList[i][0], "asdja aisdhl")
+            text = "%s\t" % (self.numDirsList[i][0])
             if self.numDirsList[i][1] == "across":
                 self.acrossHints.insert(END, text)
             elif self.numDirsList[i][1] == "down":
                 self.downHints.insert(END, text)
 
-    def updateHintSelection(self):
-        return
-        ja = 4
-        self.acrossHints.activate(ja-1)
-        self.acrossHints.see(ja-1)
+    def initWordSuggestions(self):
+        self.wordsFrame = Frame(self.canvas)
+        self.wordsScrollbar = Scrollbar(self.wordsFrame, orient=VERTICAL)
+        self.wordSuggestions = Listbox(self.wordsFrame, font="Helvetica 16", 
+                                       width=30,
+                                       yscrollcommand=self.wordsScrollbar.set,
+                                       selectbackground="White",
+                                       height=19)
+        self.wordsScrollbar.config(command=self.wordSuggestions.yview)
+        self.wordsScrollbar.pack(side=RIGHT, fill=Y)
+        self.wordSuggestions.pack(side=LEFT, fill=BOTH, expand=1)
 
     def drawPossibleWords(self):
-        print "possibleWords"
-        print self.possibleWords
-        return
         canvas = self.canvas
-        i = 0
-        for word in self.possibleWords:
-            canvas.create_text(300, i, text=word, anchor=W)
-            i += 15
+        canvas.create_window(self.widthOfBoard, 135, anchor=NW, 
+                             window=self.wordsFrame)
+        canvas.create_text(self.widthOfBoard, 120, anchor=W, 
+                           text="Word Suggestions", font="Helvetica 24 bold")
+        canvas.create_rectangle(self.widthOfBoard, 540, 840, 595, 
+                                fill=self.selectedWordColor)
+        canvas.create_text(720, 568, text="Write Hints", 
+                           font="Helvetica 24 bold")
 
     def drawCrosswordBoard(self):
         canvas = self.canvas
@@ -476,9 +556,11 @@ class CrosswordPuzzle(EventBasedAnimationClass):
             for col in xrange(self.blocks):
                 x = self.margin + col*self.blockWidth + self.blockWidth/2
                 y = self.margin*2 + row*self.blockWidth + self.blockWidth/2
-                if self.board[row][col] != 1 or self.board[row][col] != None:
+                if self.board[row][col] != 1 and self.board[row][col] != None:
                     letter = self.board[row][col]
-                    canvas.create_text(x, y, text=letter, font="Helvetica 22")
+                    color = self.colorOfLetters[row][col]
+                    canvas.create_text(x, y, text=letter, font="Helvetica 22",
+                                       fill=color)
 
     def drawNumbers(self):
         canvas = self.canvas
@@ -490,14 +572,22 @@ class CrosswordPuzzle(EventBasedAnimationClass):
             canvas.create_text(x, y, text=i+1, font="Helvetica 12", 
                                anchor=NW)
 
-    def onTimerFired(self):
+    def onEvent(self):
         if self.mode == 0:
+            self.updateTitle()
             self.wordList = self.findWords()
             self.numberList = self.findNumbers()
-            self.numDirsList = self.findNumberDirections()
-            # self.updateHints()
-            # self.updateHintSelection()
             self.checkWordsAreLegal()
+            if self.showPossibleWords:
+                self.possibleWords = self.findPossibleWords()
+                self.updatePossibleWords()
+            else:
+                self.numDirsList = self.findNumberDirections()  
+
+    def updatePossibleWords(self):
+        self.wordSuggestions.delete(0, END)
+        for word in self.possibleWords:
+            self.wordSuggestions.insert(END, word)
 
     def checkWordsAreLegal(self):
         for wordIndexes in self.wordList:
@@ -506,8 +596,14 @@ class CrosswordPuzzle(EventBasedAnimationClass):
                 word.append(self.board[rowLetter][colLetter])
             if None not in word:
                 word = "".join(word)
-                if word not in self.dictionary:
-                    print "Not a real word"
+                word = word.lower()
+                isWord = self.wordApi.getDefinitions(word)
+                if isWord != None:
+                    for row, col in wordIndexes:
+                        self.colorOfLetters[row][col] = self.wordColor
+                else:
+                    for row, col in wordIndexes:
+                        self.colorOfLetters[row][col] = self.errorColor
 
     def findWordsAcross(self, wordList=None, row=0, col=0):
         if wordList == None:
