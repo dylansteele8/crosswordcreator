@@ -1,0 +1,43 @@
+Proposal
+Dylan Steele
+
+I will be making a crossword creator and solver for my 112 term project. A few weeks ago, I attended a talk by renowned magician David Kwong, who specializes in combining his two nerd passions of magic and crosswords. His presentation inspired me to start doing crosswords; in fact, that night I pulled out my laptop, went to the New York Times Crossword website, and started to play one of the two free crosswords available to non-subscribers. One of my friends walked in and immediately started laughing at me for doing a crossword, thinking that they were really easy and weren’t much fun. So I asked him one of the hints I was having trouble on. No response. Asked him another one that I had gotten. No response. So he sat down and we started solving the crossword together. Soon, we were laughing and yelling hints and others started to join us in our journey to finish this puzzle. It has been the most fun I’ve had here at CMU.
+
+Unfortunately, once we had finished the two crosswords on the New York Times, we couldn’t find any others that were very good. The other NYT ones were behind a paywall and other services had annoying interfaces or only provided a PDF instead of an interactive program.
+
+As a result, I feel that a program that can create new crosswords for friends to share, as well as an interface to solve crosswords, is a much needed. I will focus on the two main modes of creating and solving crosswords (list of features).
+
+1) Creating crosswords:
+- Users need to be able to:
+	- specify board size (number of blocks per side)
+		 - will most likely be bounded between 7 and 15
+	- specify black spaces (blocked off squares)
+	- add letters
+	- add hints for each word
+	- get a list of computer-suggested words*
+	- get a list of computer-suggested hints
+	- export to PDF (for printing/sharing)
+	- export to a format readable by the program (“save”)
+	- more features possible if able to develop these
+
+2) Solving crosswords:
+- Users need to be able to:
+	- input a crossword
+		- from a file
+		- if possible: from a picture (OpenCV**)
+			- recognize blocks (blank, blocked)
+			- recognize letters
+			- recognize hints
+	- solve with their own guesses
+	- solve with computer suggestions
+		- computer will know final solution since it has the file, but will solve without looking at file
+			- referencing dictionary (list of words) and backtracking when word does not work
+	- solve entirely with computer (no human)
+
+The program will also need a menu/start screen as well as a help screen (specified in storyboard).
+
+* The dictionary (list of words) will be Apple’s built-in dictionary, which is based on the Merriam-Webster dictionary (unsure of what version).
+
+** OpenCV will only be implemented if I have a solid, functioning product at least a week before the project is due. I will email you if I come to that point and inform you that I will be using the OpenCV module and will provide evidence for my competency if requested.
+
+NOTE: The only module I will be using for now is Tkinter.

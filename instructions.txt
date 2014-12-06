@@ -1,0 +1,29 @@
+Press the 'New Crossword' button to create a new crossword puzzle
+
+Click on the crossword board to select a row and column
+
+The selected box will be highlighted in yellow and the selected word will be blue
+
+Pressing a letter on the keyboard will place it in the selected box
+
+Pressing 'Tab' will advance to the next word
+
+Pressing 'Delete' will delete the currently selected character and go back one character
+
+Clicking on the currently selected box will rotate the direction of the selected word (Across or Down)
+
+Pressing the 'Escape' key will display suggested words on the right for the selected word
+
+Click on a suggested word to place it into the selected word boxes
+
+When you are done creating the crossword, click the 'Write Hints' button to assign hints to each word
+
+You will not be able to edit the crossword board after pressing this button
+
+Click on a row with a number to enter in that hint for the number (remember to choose the right direction)
+
+When you are done entering in hints for all of the words, you can save the crossword
+
+Click the 'Save (with solution)' button to include the words in the saved file
+
+Click the 'Save (without solution)' button to save the crossword board without the letters

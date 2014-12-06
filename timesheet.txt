@@ -1,0 +1,62 @@
+Timesheet
+Dylan Steele
+
+#### Week 1 ####
+Monday, November 17 – 3 hours 
+	- researching competitors
+	- coding basic framework
+	- finding word dictionary
+	- storyboarding
+	- creating timeline and list of features 
+
+Tuesday, November 18 – 4 hours
+	- creating menu screen
+	- drawing of crossword area
+	- writing of competitive analysis
+	- allowing user input
+
+Thursday, November 20 - 2 hours
+    - finding/drawing numbers
+
+Saturday, November 22 - 2 hours
+    - refining numbers function
+
+#### Week 2 ####
+Sunday, November 23 - 4 hours
+    - finding words down and across
+    - checking if contiguous letters are a word
+
+Tuesday, November 25 - 2 hours
+    - going to next word
+    - improved: highlighting selected word (both directions)
+
+Wednesday, November 26 - 3 hours
+    - creating basic list of possible words
+    - deleting letters
+    - tabbing to next word
+
+#### Week 3 ####
+Sunday, November 30 - 2 hours
+    - adding possible words through personal dictionary
+
+Monday, December 1 - 4 hours
+    - adding hint boxes
+    - debuggin Tkinter Lisboxes
+
+Tuesday, December 2 - 6 hours
+    - adding Wordnik module for words
+    - changing order of creating crossword
+    - bug fixes
+    - implementing Title Entry widget
+
+Wednesday, December 3 - 6 hours
+    - refine possible word list for intersecting words
+    - saving game (with and without hints)
+    - add arrow key movement
+    - add comments
+    - fix numbering on hints
+    - menu button
+    - help screen
+
+Thursday, December 4 - 1 hour
+    - create video

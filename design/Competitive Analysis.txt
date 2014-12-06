@@ -1,0 +1,51 @@
+Competitive Analysis
+Dylan Steele
+
+1) New York Times Crossword
+Features:
+	- Great crosswords (good hints/words, not too confusing)
+	- Good level of difficulty
+	- Great UI/UX (will most likely base mine off of this)
+	- Clear, reveal, check, delete functions (will implement these for sure; clear and delete in both modes, reveal and check in solve mode)
+	- Highlights current letter/word
+
+Anti-Features:
+	- Only two crosswords available to play for free
+
+2) PyCross: The Python-based crossword creator (Yijing Chen, 112 F13 Term Project)
+Features:
+	- Dynamic numbering system
+	- Ability to fill in blocked squares
+	- List of possible words
+	- Shows duplicate words
+	- Can import/export files
+
+Anti-Features:
+	- List of possible words is wrong (only accounts for one direction)
+	- Creates crosswords with non-real wrongs
+	- Kind of funny
+	- Interface is through terminal
+
+3) Crossword Puzzle Maker (http://www.puzzle-maker.com/CW/)
+Features:
+	- Very easy for user to enter words/hints
+	- Title and subtitle section
+	- Can put in background image to match theme
+
+Anti-Features:
+	- Does not allow user to choose where on board words go
+	- Kind of ugly
+	- Does not create “real” crosswords in the sense of a square with blocked squares
+
+4) Dictionary.com Crossword Solver (http://dictionary.reference.com/crossword/index.html)*
+Features:
+	- Great ability to get correct word for hint
+	- Ability to specify length of word
+	- Returns list of words and confidences
+	- Large database of hints/words
+
+Anti-Features:
+	- Does not solve an entire puzzle
+	- Have to input individual hints’
+
+* Might set up system for solving crosswords with Dictionary.com; GET request with a URL of hint and length of word and return a list of words; check if any of the words fit with the ones around it

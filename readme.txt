@@ -1,0 +1,6 @@
+README
+Dylan Steele
+
+My term project is called Crossword Creator. With this application, users can create custom crosswords (similar to New York Times crosswords, i.e. American style) and save them in order to share with friends. Once the crossword board and hints have been filled out, users can export the puzzle with the solution (the letters on the board) or without the solution (as a method for distributing for others to solve). It allows users to enter in their own words, create black blocks, and ask for word suggestions if they need help finding a word that will fit. Words that are not real will be highlighted in red so that users may easily see what is wrong with the current puzzle. 
+
+To run my term project, all you need to do is run the crosswordCreator.py file. You can do this however you like (Sublime, Terminal, Command Prompt, IDLE, etc.). The project depends on the Wordnik module, but the library is included so no other files need to be downloaded in order for the project to run successfully. However, an Internet connection is required in order for Wordnik library to work.
